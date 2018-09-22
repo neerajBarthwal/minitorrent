@@ -1,0 +1,10 @@
+1234|abc.txt|192.168.1.1:8080
+5678|movie.mp4|256.123.10.2:5689
+5678|movie.mp4|10.11.12.13:5689
+9101112|hello.mp3|10.12.36.89:8082
+6a10743f0ac3d82f5603506f110ddcca1fd69ff5|/home/neeraj/project/OS/torrent/prog1.pdf|127.0.0.1:8081
+6b37d7502dd9f036ce6dca33c89b0f38a77ed735|/home/neeraj/project/OS/torrent/os.pdf|127.0.0.1:8081
+1b0ebee779dac3022d9c4ff560e06ae0f616f685|/home/neeraj/project/OS/torrent/cp.pdf|127.0.0.1:8081
+6a10743f0ac3d82f5603506f110ddcca1fd69ff5|/home/neeraj/project/OS/torrent/prog1.pdf|10.10.203.3:8081
+6a10743f0ac3d82f5603506f110ddcca1fd69ff5|/home/neeraj/project/OS/torrent/prog1.pdf|192.168.1.1:8081
+6b37d7502dd9f036ce6dca33c89b0f38a77ed735|/home/neeraj/project/OS/torrent/os.pdf|127.0.0.1:8081
