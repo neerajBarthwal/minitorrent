@@ -10,6 +10,7 @@
 #include <thread>
 #include <bits/stdc++.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -78,22 +79,8 @@ using namespace std;
      }
 
      //erase information from file
-      string linetodelete = file_hash+"|"+client_info;
-      string line;
-      ifstream fin;
-      fin.open("seeder_file.txt");
-      ofstream temp;
-      temp.open("temp.txt");
-
-      while (getline(fin,line)){
-        line.replace(line.find(linetodelete),linetodelete.length(),"");
-        temp << line << endl;
-
-      }
-      temp.close();
-      fin.close();
-      remove("seeder_file.txt");
-      rename("temp.txt","seeder_file.txt");
+      string sed_on_file = "sed -i -r '/^("+file_hash+").*("+client_info+")$/d' seeder_file.txt";
+      system(sed_on_file.c_str());
         
   }
 }
@@ -134,11 +121,39 @@ using namespace std;
   }
  }
 
+ void close_client(string client_info){
+   cout<<"in close client: "<<client_info<<endl;
+   for(auto map_itr=tracker.seederList.begin(); map_itr!=tracker.seederList.end(); map_itr++){
+     set<string> client_info_set = map_itr->second;
+
+     set<string>::iterator it = client_info_set.begin();
+       
+        while(it!=client_info_set.end()){
+         
+          set<string>::iterator current = it++;
+          string client = *current;
+
+          if(client.find(client_info) != std::string::npos){
+            client_info_set.erase(current);
+            break;
+          }
+
+        }
+      
+   }
+
+   //string sed_on_file = "sed -i -r '/.*("+client_info+")$/d' seeder_file.txt";
+   //system(sed_on_file.c_str());
+
+
+ }
+
  string parse_message_for_action(string message){
    cout<<"in parse: "<<message<<endl;
    string response_message;
    vector<string> message_from_client = split(message,'|');
-
+   cout<<"close size: "<<message_from_client.size();
+   cout<<message_from_client[0]<<" "<<message_from_client[1]<<endl;
    string action = message_from_client[0];
    
    if(action=="share"){
@@ -151,7 +166,12 @@ using namespace std;
      string hash = message_from_client[1];
      response_message = send_seeder_list(hash);
    }else if(action=="remove"){
+     cout<<"\n in remove: "<<"arg1: "<<message_from_client[1]<<" "<<message_from_client[2];
      remove_shared_file(message_from_client[1],message_from_client[2]);
+     response_message="OK";
+   }else if(action=="close"){
+     cout<<"Closing client: "<<message_from_client[1];
+     close_client(message_from_client[1]);
      response_message="OK";
    }
 
@@ -309,16 +329,16 @@ void initialize_seeder_list(string seeder_file_path){
       
 
   }
-  // cout<<"Tracker Seederlist initialized: "<<tracker.seederList.size();
-  // for(auto it = tracker.seederList.begin(); it!= tracker.seederList.end();it++){
-  //   string hash = it->first;
-  //   set<string> myset = it->second;
+  cout<<"Tracker Seederlist initialized: "<<tracker.seederList.size();
+  for(auto it = tracker.seederList.begin(); it!= tracker.seederList.end();it++){
+    string hash = it->first;
+    set<string> myset = it->second;
 
-  //   cout <<"\n"<<hash<<" ";
-  //   for(auto it2 = myset.begin();it2!=myset.end();it2++){
-  //     cout<<*it2<<" ";
-  //   }
-  // }
+    cout <<"\n"<<hash<<" ";
+    for(auto it2 = myset.begin();it2!=myset.end();it2++){
+      cout<<*it2<<" ";
+    }
+  }
 
  // string response = send_seeder_list("5678");
   //cout<<response;

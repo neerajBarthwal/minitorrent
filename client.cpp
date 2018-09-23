@@ -26,6 +26,7 @@ string tracker2_ip;
 int tracker2_port;
 
 string log_file;
+vector<string> show_downloads;
 
 vector<string> split(const string& s, char delimiter){
    vector<string> tokens;
@@ -73,7 +74,7 @@ void connect_to_seeders(string clien_ip, int port, string file_to_download_hash)
 }
 
 void  parse_seeder_list(string seeder_list){
-    //cout<<"Recived seeder list: "<<seeder_list<<endl;
+    cout<<"Recived seeder list: "<<seeder_list<<endl;
     vector<string> client_info = split(seeder_list,';');
 
     for(int i=0;i<client_info.size();i++){
@@ -84,15 +85,15 @@ void  parse_seeder_list(string seeder_list){
         stringstream ss(client_port_str);
         int client_port;
         ss>>client_port;
-        thread connect_to_seeder(connect_to_seeders,client_ip,client_port);
-        connect_to_seeder.detach();
+        //thread connect_to_seeder(connect_to_seeders,client_ip,client_port,seeder_list);
+        //connect_to_seeder.detach();
         
     }
 
 }
 
 void send_request_to_tracker(string req_message){
-    //printf("%s ",req_message.c_str());
+    printf("%s ",req_message.c_str());
 
     int sockfd;
     int len;
@@ -169,6 +170,38 @@ void send_request_to_tracker(string req_message){
 
 }
 
+string get_sha_of_sha_from_torrent(string torrent_file_path){
+    ifstream in(torrent_file_path.c_str());
+    string s;
+    for(int i = 0; i < 4; ++i)
+       getline(in, s);
+
+   getline(in,s);
+   string sha_of_sha = create_sha_of_sha(s);
+   return sha_of_sha;
+}
+
+string get_file_name_from_torrent_file(string torrent_file_path){
+    ifstream in(torrent_file_path.c_str());
+    string s;
+    for(int i = 0; i < 2; ++i)
+       getline(in, s);
+
+   getline(in,s);
+   string file_to_download = s;
+   return file_to_download;
+}
+
+string create_remove_request(string sha_of_sha){
+    string req = "remove|"+sha_of_sha+"|"+client_ip_port;
+    return req;
+}
+
+string create_close_request(){
+    string req = "close|"+client_ip_port;
+    return req;
+}
+
 string get_sha_from_torrent_file(string torrent_file_path){
 
     ifstream in(torrent_file_path.c_str());
@@ -191,10 +224,10 @@ void print_client_menu(){
     cout<<"\n3. Show Downloads: show downloads";
     cout<<"\n4. Remove: remove <filename.mtorrent>";
     cout<<"\n5. Exit";
-    cout<<"\n\nEnter command: ";
-    char ch;
-    do{
-
+    
+    
+    while(true){
+        cout<<"\n\nEnter command: ";
         getline(cin,command);
         vector<string> cmd = split(command,' ');
         
@@ -209,14 +242,34 @@ void print_client_menu(){
             string destination = cmd[2];
             string torrent_file_path = parse_file_path(torrent_file);
             string req_to_server = get_sha_from_torrent_file(torrent_file_path);
+            string file_to_download = get_file_name_from_torrent_file(torrent_file_path);
+            show_downloads.push_back(file_to_download);
             thread get_request(send_request_to_tracker,req_to_server);
             get_request.detach();
+        }else if(cmd[0]=="remove"){
+            string torrent_file = cmd[1];
+            string torrent_file_path = parse_file_path(torrent_file);
+            string sha_of_sha = get_sha_of_sha_from_torrent(torrent_file_path);
+            string req_to_server = create_remove_request(sha_of_sha);
+            cout<<"\nremovereq: "<<req_to_server;
+            thread remove_request(send_request_to_tracker,req_to_server);
+            remove_request.detach();   
+        }else if(cmd[0]=="show"){
+            if(show_downloads.size()==0){
+                cout<<"No files downloaded yet"<<endl;
+            }else{
+                for(int i =0;i<show_downloads.size();i++){
+                    cout<<show_downloads[i]<<endl;
+                }
+            }
+        }else if(cmd[0]=="close"){
+            string req_to_server = create_close_request();
+            thread close_request(send_request_to_tracker,req_to_server);
+            close_request.detach();
         }
-    cout<<"Do you want to continue?(y/n): "<<endl;
-   
-    cin>>ch;    
+      
 
-    }while( ch=='y'|| ch=='Y');
+    }
 
 
 }
